@@ -1,0 +1,21 @@
+name: ATProto Action
+description: Use ATProtocol on your workflow
+author: comfuture
+inputs:
+  service:
+    description: Atprotol service
+    required: true
+    default: 'https://bsky.social'
+  identifier:
+    description: Atprotol handle or email
+    required: true
+  password:
+    description: Atprotol password
+    required: true
+  content:
+    description: The content to post
+    required: true
+  richtext:
+    description: Whether the content is richtext
+    required: true
+    default: true

@@ -1,0 +1,21 @@
+{
+  "name": "atproto-action",
+  "version": "0.1.0",
+  "description": "run atprotocol on github actions workflow",
+  "main": "dist/index.js",
+  "repository": "https://github.com/comfuture/atproto-action",
+  "author": "comfuture<comfuture@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@atproto/api": "^0.4.3"
+  }
+}

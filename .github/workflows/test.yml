@@ -1,0 +1,30 @@
+name: build-test
+on:
+  push:
+    branches:
+      - main
+      - tags/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and test
+        run: yarn build
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: create post
+        uses: ./
+        with:
+          identifier: ${{ secrets.BSKY_ID }}
+          password: ${{ secrets.BSKY_PASSWORD }}
+          content: |
+            ATProto Action ${{ github.head_ref }} works fine!
+            https://github.com/comfuture/atproto-action
