@@ -44,12 +44,13 @@ async function run(): Promise<void> {
   await agent.login({
     identifier,
     password,
+  }).catch((err) => {
+    core.setFailed(`Login failure: ${err}`)
+    return
   })
 
-  const post: AppBskyFeedPost.Record = {
+  const post: Partial<AppBskyFeedPost.Record> = {
     $type: 'app.bsky.feed.post',
-    text: '',
-    createdAt: new Date().toISOString(),
   }
 
   if (isRichText) {
