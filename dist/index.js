@@ -30209,12 +30209,12 @@ const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
     if (!allowdMethods.includes(httpMethod.toUpperCase())) {
         throw new Error(`Unsupported HTTP method: ${httpMethod}`);
     }
+    core.debug(`HTTP ${httpMethod} ${httpUri}`);
     const res = await http.request(httpMethod, httpUri, httpReqBody, httpHeaders);
-    const body = await res.readBody();
     return {
         status: res.message.statusCode,
         headers: { ...res.message.headers },
-        body: res.message.statusCode === 200 ? JSON.parse(body) : undefined,
+        body: res.message.statusCode === 200 ? await res.readBody() : undefined,
     };
 };
 // BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs

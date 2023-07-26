@@ -17,12 +17,12 @@ const fetchImpl: AtpAgentFetchHandler = async (
   if (!allowdMethods.includes(httpMethod.toUpperCase())) {
     throw new Error(`Unsupported HTTP method: ${httpMethod}`)
   }
+  core.debug(`HTTP ${httpMethod} ${httpUri}`)
   const res = await http.request(httpMethod, httpUri, httpReqBody, httpHeaders)
-  const body = await res.readBody()
   return {
     status: res.message.statusCode,
     headers: { ...res.message.headers } as Record<string, string>,
-    body: res.message.statusCode === 200 ? JSON.parse(body) : undefined,
+    body: res.message.statusCode === 200 ? await res.readBody() : undefined,
   }
 }
 
