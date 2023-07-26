@@ -27,6 +27,6 @@ jobs:
         with:
           identifier: ${{ secrets.BSKY_ID }}
           password: ${{ secrets.BSKY_PASSWORD }}
-          content: |
-            ATProto Action ${{ github.event.head_commit }} works fine!
-            https://github.com/comfuture/atproto-action
+          content: >
+            ATProto Action ${{ github.event.head_commit.id }} works fine!
+            ${{ github.event.head_commit.url }}
