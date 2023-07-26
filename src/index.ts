@@ -63,5 +63,5 @@ async function run(): Promise<void> {
 }
 
 run().catch((err) => {
-  core.error(err)
+  core.setFailed(err)
 })

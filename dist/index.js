@@ -34444,6 +34444,23 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 const core = __importStar(__nccwpck_require__(2186));
 const api_1 = __nccwpck_require__(7663);
+globalThis.fetch = node_fetch_1.default; // XXX This is a hack to make the agent work in nodejs
+const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
+    const res = await (0, node_fetch_1.default)(httpUri, {
+        method: httpMethod,
+        headers: httpHeaders,
+        body: httpReqBody,
+    });
+    return {
+        status: res.status,
+        headers: { ...res.headers },
+        body: res.ok ? res.body : undefined,
+    };
+};
+api_1.BskyAgent.fetch = fetchImpl; // XXX This is a hack to make the agent work in nodejs
+api_1.BskyAgent.configure({
+    fetch: fetchImpl
+});
 async function run() {
     const service = core.getInput('service');
     const identifier = core.getInput('identifier');
@@ -34451,23 +34468,6 @@ async function run() {
     const content = core.getInput('content');
     const isRichText = core.getInput('richtext') === 'true';
     const agent = new api_1.BskyAgent({ service });
-    const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
-        const res = await (0, node_fetch_1.default)(httpUri, {
-            method: httpMethod,
-            headers: httpHeaders,
-            body: httpReqBody,
-        });
-        return {
-            status: res.status,
-            headers: { ...res.headers },
-            body: res.ok ? res.body : undefined,
-        };
-    };
-    api_1.BskyAgent.fetch = fetchImpl; // XXX This is a hack to make the agent work in nodejs
-    api_1.BskyAgent.configure({
-        fetch: fetchImpl
-    });
-    globalThis.fetch = node_fetch_1.default; // XXX This is a hack to make the agent work in nodejs
     await agent.login({
         identifier,
         password,
@@ -34490,7 +34490,7 @@ async function run() {
     await agent.post(post);
 }
 run().catch((err) => {
-    core.error(err);
+    core.setFailed(err);
 });
 
 
