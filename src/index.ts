@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import * as core from '@actions/core'
-import { BskyAgent, RichText } from '@atproto/api'
-import type { AppBskyFeedPost, AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
+import { BskyAgent, RichText, AppBskyFeedPost } from '@atproto/api'
+import type { AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
 
 (globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
 
@@ -10,6 +10,9 @@ const fetchImpl: AtpAgentFetchHandler = async (
   httpMethod: string,
   httpHeaders: Record<string, string>,
   httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> => {
+
+  core.setOutput('fetchImpl', `uri: ${httpUri} method: ${httpMethod} headers: ${JSON.stringify(httpHeaders)}`)
+  
   const res = await fetch(httpUri, {
     method: httpMethod,
     headers: httpHeaders,
@@ -58,6 +61,17 @@ async function run(): Promise<void> {
     post['text'] = content
   }
   post['createdAt'] = new Date().toISOString()
+
+  if (AppBskyFeedPost.isRecord(post)) {
+    const res = AppBskyFeedPost.validateRecord(post)
+    if (!res.success) {
+      core.setFailed(`Invalid post: ${res.error}`)
+      return
+    }
+  } else {
+    core.setFailed('Invalid post')
+    return
+  }
 
   await agent.post(post)
 }
