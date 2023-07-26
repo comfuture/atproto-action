@@ -22,7 +22,7 @@ const fetchImpl: AtpAgentFetchHandler = async (
   return {
     status: res.message.statusCode,
     headers: { ...res.message.headers } as Record<string, string>,
-    body: res.message.statusCode === 200 ? body : undefined,
+    body: res.message.statusCode === 200 ? JSON.parse(body) : undefined,
   }
 }
 
