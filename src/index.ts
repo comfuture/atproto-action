@@ -1,9 +1,7 @@
 import fetch from 'node-fetch'
 import * as core from '@actions/core'
 import { BskyAgent, RichText } from '@atproto/api'
-import type { AppBskyFeedPost, AtpAgentFetchHandlerResponse } from '@atproto/api'
-
-(globalThis as any).fetch = fetch
+import type { AppBskyFeedPost, AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
 
 async function run(): Promise<void> {
   const service = core.getInput('service')
@@ -13,6 +11,31 @@ async function run(): Promise<void> {
   const isRichText = core.getInput('richtext') === 'true'
 
   const agent = new BskyAgent({ service })
+
+  const fetchImpl: AtpAgentFetchHandler = async (
+    httpUri: string,
+    httpMethod: string,
+    httpHeaders: Record<string, string>,
+    httpReqBody: any): Promise<AtpAgentFetchHandlerResponse>  => {
+      const res = await fetch(httpUri, {
+        method: httpMethod,
+        headers: httpHeaders,
+        body: httpReqBody,
+      })
+
+      return {
+        status: res.status,
+        headers: { ...res.headers } as Record<string, string>,
+        body: res.ok ? res.body : undefined,
+      }
+    }
+
+  BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs
+  BskyAgent.configure({
+    fetch: fetchImpl
+  });
+
+  (globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
 
   await agent.login({
     identifier,
