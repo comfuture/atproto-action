@@ -1,18 +1,19 @@
-// import fetch from 'node-fetch'
 import * as hc from '@actions/http-client'
 import * as core from '@actions/core'
 import { BskyAgent, RichText, AppBskyFeedPost } from '@atproto/api'
 import type { AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
-
-// (globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
 
 const fetchImpl: AtpAgentFetchHandler = async (
     httpUri: string,
     httpMethod: string,
     httpHeaders: Record<string, string>,
     httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> => {
-  const http = new hc.HttpClient('atproto')
-  const allowdMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  const http = new hc.HttpClient('atproto', [], {
+    allowRetries: true,
+    maxRetries: 3,
+    socketTimeout: 10000,
+  })
+  const allowdMethods = ['GET', 'POST'] // xrpc only uses GET and POST
   if (!allowdMethods.includes(httpMethod.toUpperCase())) {
     throw new Error(`Unsupported HTTP method: ${httpMethod}`)
   }

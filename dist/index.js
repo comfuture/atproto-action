@@ -30196,14 +30196,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-// import fetch from 'node-fetch'
 const hc = __importStar(__nccwpck_require__(255));
 const core = __importStar(__nccwpck_require__(186));
 const api_1 = __nccwpck_require__(663);
-// (globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
 const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
-    const http = new hc.HttpClient('atproto');
-    const allowdMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    const http = new hc.HttpClient('atproto', [], {
+        allowRetries: true,
+        maxRetries: 3,
+        socketTimeout: 10000,
+    });
+    const allowdMethods = ['GET', 'POST']; // xrpc only uses GET and POST
     if (!allowdMethods.includes(httpMethod.toUpperCase())) {
         throw new Error(`Unsupported HTTP method: ${httpMethod}`);
     }
