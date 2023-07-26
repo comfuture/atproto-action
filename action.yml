@@ -1,6 +1,8 @@
 name: ATProto Action
 description: Use ATProtocol on your workflow
 author: comfuture
+icon: at-sign
+color: blue
 inputs:
   service:
     description: Atprotol service
