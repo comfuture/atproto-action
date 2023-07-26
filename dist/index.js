@@ -30200,6 +30200,10 @@ const hc = __importStar(__nccwpck_require__(255));
 const core = __importStar(__nccwpck_require__(186));
 const api_1 = __nccwpck_require__(663);
 const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
+    const reqMimeType = httpHeaders['Content-Type'] || httpHeaders['content-type'];
+    if (reqMimeType && reqMimeType.startsWith('application/json')) {
+        httpReqBody = (0, api_1.stringifyLex)(httpReqBody);
+    }
     const http = new hc.HttpClient('atproto', [], {
         allowRetries: true,
         maxRetries: 3,
@@ -30209,12 +30213,18 @@ const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
     if (!allowdMethods.includes(httpMethod.toUpperCase())) {
         throw new Error(`Unsupported HTTP method: ${httpMethod}`);
     }
-    core.setOutput('DEBUG', `HTTP ${httpMethod} ${httpUri}`);
     const res = await http.request(httpMethod, httpUri, httpReqBody, httpHeaders);
+    let body = await res.readBody();
+    const resMimeType = res.message.headers['Content-Type'] || res.message.headers['content-type'];
+    if (resMimeType) {
+        if (resMimeType.startsWith('application/json')) {
+            body = (0, api_1.jsonToLex)(await JSON.parse(body));
+        }
+    }
     return {
         status: res.message.statusCode,
         headers: { ...res.message.headers },
-        body: res.message.statusCode === 200 ? await res.readBody() : undefined,
+        body,
     };
 };
 // BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs

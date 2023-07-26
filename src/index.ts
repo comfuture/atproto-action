@@ -1,6 +1,6 @@
 import * as hc from '@actions/http-client'
 import * as core from '@actions/core'
-import { BskyAgent, RichText, AppBskyFeedPost } from '@atproto/api'
+import { BskyAgent, RichText, AppBskyFeedPost, stringifyLex, jsonToLex } from '@atproto/api'
 import type { AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
 
 const fetchImpl: AtpAgentFetchHandler = async (
@@ -8,6 +8,10 @@ const fetchImpl: AtpAgentFetchHandler = async (
     httpMethod: string,
     httpHeaders: Record<string, string>,
     httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> => {
+  const reqMimeType = httpHeaders['Content-Type'] || httpHeaders['content-type']
+  if (reqMimeType && reqMimeType.startsWith('application/json')) {
+    httpReqBody = stringifyLex(httpReqBody)
+  }
   const http = new hc.HttpClient('atproto', [], {
     allowRetries: true,
     maxRetries: 3,
@@ -17,12 +21,19 @@ const fetchImpl: AtpAgentFetchHandler = async (
   if (!allowdMethods.includes(httpMethod.toUpperCase())) {
     throw new Error(`Unsupported HTTP method: ${httpMethod}`)
   }
-  core.setOutput('DEBUG', `HTTP ${httpMethod} ${httpUri}`)
   const res = await http.request(httpMethod, httpUri, httpReqBody, httpHeaders)
+  let body: string | any = await res.readBody()
+
+  const resMimeType = res.message.headers['Content-Type'] || res.message.headers['content-type']
+  if (resMimeType) {
+    if (resMimeType.startsWith('application/json')) {
+      body = jsonToLex(await JSON.parse(body))
+    }
+  }
   return {
     status: res.message.statusCode,
     headers: { ...res.message.headers } as Record<string, string>,
-    body: res.message.statusCode === 200 ? await res.readBody() : undefined,
+    body,
   }
 }
 
