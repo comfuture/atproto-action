@@ -30214,7 +30214,7 @@ const fetchImpl = async (httpUri, httpMethod, httpHeaders, httpReqBody) => {
     return {
         status: res.message.statusCode,
         headers: { ...res.message.headers },
-        body: res.message.statusCode === 200 ? body : undefined,
+        body: res.message.statusCode === 200 ? JSON.parse(body) : undefined,
     };
 };
 // BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs
