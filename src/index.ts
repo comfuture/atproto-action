@@ -1,32 +1,31 @@
-import fetch from 'node-fetch'
+// import fetch from 'node-fetch'
+import * as hc from '@actions/http-client'
 import * as core from '@actions/core'
 import { BskyAgent, RichText, AppBskyFeedPost } from '@atproto/api'
 import type { AtpAgentFetchHandler, AtpAgentFetchHandlerResponse } from '@atproto/api'
 
-(globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
+// (globalThis as any).fetch = fetch // XXX This is a hack to make the agent work in nodejs
 
 const fetchImpl: AtpAgentFetchHandler = async (
-  httpUri: string,
-  httpMethod: string,
-  httpHeaders: Record<string, string>,
-  httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> => {
-
-  core.setOutput('fetchImpl', `uri: ${httpUri} method: ${httpMethod} headers: ${JSON.stringify(httpHeaders)}`)
-  
-  const res = await fetch(httpUri, {
-    method: httpMethod,
-    headers: httpHeaders,
-    body: httpReqBody,
-  })
-
+    httpUri: string,
+    httpMethod: string,
+    httpHeaders: Record<string, string>,
+    httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> => {
+  const http = new hc.HttpClient('atproto')
+  const allowdMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  if (!allowdMethods.includes(httpMethod.toUpperCase())) {
+    throw new Error(`Unsupported HTTP method: ${httpMethod}`)
+  }
+  const res = await http.request(httpMethod, httpUri, httpReqBody, httpHeaders)
+  const body = await res.readBody()
   return {
-    status: res.status,
-    headers: { ...res.headers } as Record<string, string>,
-    body: res.ok ? res.body : undefined,
+    status: res.message.statusCode,
+    headers: { ...res.message.headers } as Record<string, string>,
+    body: res.message.statusCode === 200 ? body : undefined,
   }
 }
 
-BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs
+// BskyAgent.fetch = fetchImpl // XXX This is a hack to make the agent work in nodejs
 BskyAgent.configure({
   fetch: fetchImpl
 });

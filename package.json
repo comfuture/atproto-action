@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
+    "@actions/http-client": "^2.1.0",
     "@atproto/api": "^0.4.3",
     "node-fetch": "^3.3.2"
   }
