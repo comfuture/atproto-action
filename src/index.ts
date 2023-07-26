@@ -1,23 +1,7 @@
-import fetch, { Headers, HeadersInit } from 'node-fetch'
+import fetch from 'node-fetch'
 import * as core from '@actions/core'
 import { BskyAgent, RichText } from '@atproto/api'
 import type { AppBskyFeedPost, AtpAgentFetchHandlerResponse } from '@atproto/api'
-
-BskyAgent.configure({
-  async fetch(httpUri: string, httpMethod: string, httpHeaders: Record<string, string>, httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> {
-    const res = await fetch(httpUri, {
-      method: httpMethod,
-      headers: httpHeaders,
-      body: httpReqBody,
-    })
-
-    return {
-      status: res.status,
-      headers: {...res.headers} as Record<string, string>,
-      body: res.ok ? res.body : undefined,
-    }
-  }
-})
 
 async function run(): Promise<void> {
   const service = core.getInput('service')
@@ -27,6 +11,23 @@ async function run(): Promise<void> {
   const isRichText = core.getInput('richtext') === 'true'
 
   const agent = new BskyAgent({ service })
+
+  BskyAgent.configure({
+    async fetch(httpUri: string, httpMethod: string, httpHeaders: Record<string, string>, httpReqBody: any): Promise<AtpAgentFetchHandlerResponse> {
+      const res = await fetch(httpUri, {
+        method: httpMethod,
+        headers: httpHeaders,
+        body: httpReqBody,
+      })
+
+      return {
+        status: res.status,
+        headers: { ...res.headers } as Record<string, string>,
+        body: res.ok ? res.body : undefined,
+      }
+    }
+  })
+
   await agent.login({
     identifier,
     password,
